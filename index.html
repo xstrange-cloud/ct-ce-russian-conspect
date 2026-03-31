@@ -2,7 +2,6 @@
 <html lang="ru" data-theme="light" style="">
 
 <head>
-  <meta name="description" content="Полный конспект по русскому языку для ЦТ и ЦЭ 2026: орфография + пунктуация. Правила, таблицы, ловушки РИКЗ, исключения. Подготовка на 100 баллов.">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Русский Язык ЦТ: Орфография и Пунктуация</title>
@@ -398,6 +397,98 @@
       opacity: 0.8;
     }
     
+    /* Toolbar & Editing */
+    .hidden-toolbar { display: none !important; }
+    #floatingToolbar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border: 1px solid var(--card-border);
+      display: flex;
+      gap: 10px;
+      z-index: 2000;
+      align-items: center;
+    }
+    .tool-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 1.4rem;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .tool-btn:hover { background: rgba(52, 152, 219, 0.1); }
+    .tool-btn.active {
+      background: var(--accent-color);
+      color: white;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+    }
+    
+    /* SVG and Canvas */
+    .container { position: relative; }
+    #drawCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #drawCanvas.drawing-active,
+    #drawCanvas.erasing-active {
+      pointer-events: auto;
+      touch-action: none;
+    }
+    
+    /* Popups */
+    .color-popup {
+      position: absolute;
+      bottom: 55px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px;
+      border-radius: 12px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .tool-btn.active .color-popup {
+      opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1);
+    }
+    .color-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s;
+    }
+    .color-dot.active { border-color: var(--text-color); transform: scale(1.1); }
+    
+    /* Highlighters */
+    .user-hl { border-radius: 4px; padding: 2px 0; cursor: pointer; transition: opacity 0.2s; }
+    .user-hl.hl-yellow { background: rgba(255, 235, 59, 0.4); }
+    .user-hl.hl-pink { background: rgba(255, 105, 180, 0.4); }
+    .user-hl.hl-cyan { background: rgba(0, 242, 254, 0.4); }
+    
+    /* Eraser */
+    body.erase-mode .user-hl:hover { opacity: 0.5; background: rgba(231, 76, 60, 0.6) !important; text-decoration: line-through; }
+    body.erase-mode path:hover { stroke: #e74c3c !important; opacity: 0.5; cursor: crosshair; }
+    
   </style>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&amp;display=swap" rel="stylesheet">
@@ -405,6 +496,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Google%20Sans:wght@400&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Noto%20Sans%20JP:wght@400&amp;display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;display=swap" rel="stylesheet">
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=108321690', 'ym');
+
+    ym(108321690, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/108321690" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
 </head>
 
 <body>
@@ -426,6 +532,7 @@
     </div>
   </header>
   <div class="container" id="mainContainer">
+    <svg id="drawCanvas"></svg>
     <div id="noResultsMsg">Ничего не найдено на данный момент:(</div>
     <div id="orthoSection">
       
@@ -2080,7 +2187,30 @@
     </div>
     
     </div>
-<div id="toast">✅ Сохранено!</div>
+
+    <div id="floatingToolbar" class="hidden-toolbar">
+        <button class="tool-btn active" data-tool="text" title="Текст">📝</button>
+        <button class="tool-btn" data-tool="marker" id="toolMarker" title="Маркер">
+            🖍️
+            <div class="color-popup">
+                <div class="color-dot active" data-color="yellow" style="background: #ffeb3b;"></div>
+                <div class="color-dot" data-color="pink" style="background: #ff69b4;"></div>
+                <div class="color-dot" data-color="cyan" style="background: #00f2fe;"></div>
+            </div>
+        </button>
+        <button class="tool-btn" data-tool="pen" id="toolPen" title="Ручка">
+            🖌️
+            <div class="color-popup">
+                <div class="color-dot active" data-color="red" style="background: #ff6b6b;"></div>
+                <div class="color-dot" data-color="blue" style="background: #4facfe;"></div>
+                <div class="color-dot" data-color="green" style="background: #2ecc71;"></div>
+            </div>
+        </button>
+        <button class="tool-btn" data-tool="eraser" title="Ластик">🧽</button>
+        <button class="tool-btn" id="resetBtn" title="Сбросить всё">🗑️</button>
+    </div>
+    
+  <div id="toast">✅ Сохранено!</div>
 
   
   <script>
@@ -2094,9 +2224,65 @@
     const editToggle = document.getElementById('editToggle');
     const saveBtn = document.getElementById('saveBtn');
     const toast = document.getElementById('toast');
+    const mainContainer = document.getElementById('mainContainer');
     
     let isEditing = false;
     let activeSection = orthoSection;
+
+    let currentTool = 'text';
+    let penColor = 'red';
+    let hlColor = 'yellow';
+    
+    const floatingToolbar = document.getElementById('floatingToolbar');
+    const toolBtns = document.querySelectorAll('.tool-btn:not(#resetBtn)');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function updateToolState() {
+      const currentSvg = document.getElementById('drawCanvas');
+      document.body.classList.remove('erase-mode');
+      if (currentSvg) {
+          currentSvg.classList.remove('drawing-active');
+          currentSvg.classList.remove('erasing-active');
+      }
+      mainContainer.contentEditable = "false";
+      
+      if (!isEditing) return;
+      
+      if (currentTool === 'text') {
+          mainContainer.contentEditable = "true";
+      } else if (currentTool === 'pen' || currentTool === 'marker') {
+          if (currentSvg) currentSvg.classList.add('drawing-active');
+      } else if (currentTool === 'eraser') {
+          document.body.classList.add('erase-mode');
+          if (currentSvg) currentSvg.classList.add('erasing-active');
+      }
+    }
+
+    toolBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+          if (e.target.classList.contains('color-dot')) {
+              const color = e.target.dataset.color;
+              if (btn.id === 'toolPen') penColor = color;
+              if (btn.id === 'toolMarker') hlColor = color;
+              btn.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+              e.target.classList.add('active');
+              return;
+          }
+          toolBtns.forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          currentTool = btn.dataset.tool;
+          updateToolState();
+      });
+    });
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if(confirm('Вы уверены, что хотите удалить все свои правки и вернуть оригинал?')) {
+                localStorage.removeItem('userNotes');
+                location.reload();
+            }
+        });
+    }
 
     function switchTab(sectionToShow, tabToActivate, otherSection, otherTab) {
       if (searchInput.value.trim() !== '') {
@@ -2131,7 +2317,8 @@
     if (savedOrthoContent) orthoSection.innerHTML = savedOrthoContent;
     if (savedPunctContent) punctSection.innerHTML = savedPunctContent;
 
-    function showToast() {
+    function showToast(msg) {
+      if(msg) toast.innerText = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
@@ -2139,34 +2326,126 @@
     editToggle.addEventListener('click', () => {
       isEditing = !isEditing;
       if (isEditing) {
-        if (searchInput.value.trim() !== '') {
-          searchInput.value = '';
-          searchInput.dispatchEvent(new Event('input'));
-        }
         editToggle.classList.add('active');
         editToggle.innerText = '🛑 Выйти из ред.';
         saveBtn.classList.remove('hidden');
-        activeSection.setAttribute('contenteditable', 'true');
+        floatingToolbar.classList.remove('hidden-toolbar');
+        
+        if (!document.getElementById('drawCanvas')) {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.id = "drawCanvas";
+            mainContainer.insertBefore(svg, mainContainer.firstChild);
+        }
+        
+        updateToolState();
+        showToast("Режим редактирования включен");
       } else {
         editToggle.classList.remove('active');
         editToggle.innerText = '✏️ Ред. режим';
         saveBtn.classList.add('hidden');
-        orthoSection.setAttribute('contenteditable', 'false');
-        punctSection.setAttribute('contenteditable', 'false');
+        floatingToolbar.classList.add('hidden-toolbar');
+        updateToolState();
+        showToast("Режим редактирования выключен");
       }
     });
 
-    saveBtn.addEventListener('click', () => {
-      activeSection.setAttribute('contenteditable', 'false');
-      if (activeSection === orthoSection) {
-        localStorage.setItem('orthoContent', orthoSection.innerHTML);
-      } else {
-        localStorage.setItem('punctContent', punctSection.innerHTML);
-      }
-      activeSection.setAttribute('contenteditable', 'true');
-      rebuildSearchCache();
-      showToast();
+    // Draw and Marker Event Listeners
+    let isDrawing = false;
+    let isErasing = false;
+    let currentPath = null;
+    let pathData = '';
+
+    mainContainer.addEventListener('pointerdown', (e) => {
+        if (!isEditing) return;
+        const currentSvg = document.getElementById('drawCanvas');
+        if (!currentSvg) return;
+
+        if (currentTool === 'eraser') {
+            isErasing = true;
+            if (e.target.tagName && e.target.tagName.toLowerCase() === 'path') {
+                e.target.remove();
+            }
+            const hl = e.target.closest('.user-hl');
+            if (hl) {
+                const text = document.createTextNode(hl.textContent);
+                hl.parentNode.replaceChild(text, hl);
+            }
+            e.preventDefault();
+            return;
+        }
+        
+        if (currentTool !== 'pen' && currentTool !== 'marker') return;
+        
+        isDrawing = true;
+        const rect = currentSvg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        if (currentTool === 'pen') {
+            const strokeColors = {red: '#ff2a2a', blue: '#0066ff', green: '#10b981'};
+            currentPath.setAttribute("stroke", strokeColors[penColor] || '#ff2a2a');
+            currentPath.setAttribute("stroke-width", "4");
+            currentPath.style.filter = "drop-shadow(0 1px 2px rgba(0,0,0,0.2))";
+        } else {
+            const markerColors = {yellow: '#ffe600', pink: '#ff007f', cyan: '#00e5ff'};
+            currentPath.setAttribute("stroke", markerColors[hlColor] || '#ffe600');
+            currentPath.setAttribute("stroke-width", "22");
+            currentPath.setAttribute("stroke-opacity", "0.4");
+            currentPath.style.mixBlendMode = "multiply";
+        }
+        
+        currentPath.setAttribute("fill", "none");
+        currentPath.setAttribute("stroke-linecap", "round");
+        currentPath.setAttribute("stroke-linejoin", "round");
+        
+        pathData = `M ${x} ${y}`;
+        currentPath.setAttribute("d", pathData);
+        currentSvg.appendChild(currentPath);
+        e.preventDefault();
     });
+
+    mainContainer.addEventListener('pointermove', (e) => {
+        if (!isEditing) return;
+        
+        if (isErasing && currentTool === 'eraser') {
+            if (e.target.tagName && e.target.tagName.toLowerCase() === 'path') {
+                e.target.remove();
+            }
+            return;
+        }
+        
+        if (!isDrawing || (currentTool !== 'pen' && currentTool !== 'marker') || !currentPath) return;
+        const currentSvg = document.getElementById('drawCanvas');
+        const rect = currentSvg.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        pathData += ` L ${x} ${y}`;
+        currentPath.setAttribute("d", pathData);
+        if (e.cancelable) e.preventDefault();
+    });
+
+    function stopInteraction() { isDrawing = false; isErasing = false; }
+    mainContainer.addEventListener('pointerup', stopInteraction);
+    mainContainer.addEventListener('pointerleave', stopInteraction);
+
+    saveBtn.addEventListener('click', () => {
+      const svg = document.getElementById('drawCanvas');
+      if(svg) svg.classList.remove('drawing-active');
+      mainContainer.contentEditable = "false";
+      
+      localStorage.setItem('userNotes', mainContainer.innerHTML);
+      showToast("Конспект сохранен!");
+      
+      updateToolState();
+      rebuildSearchCache();
+    });
+
+    const savedHTML = localStorage.getItem('userNotes');
+    if (savedHTML) {
+      mainContainer.innerHTML = savedHTML;
+    }
 
     const originalHTMLs = new Map();
 
