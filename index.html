@@ -73,8 +73,13 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+      transition: transform 0.3s ease-in-out;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       height: auto !important;
+    }
+
+    .header-hidden {
+      transform: translateY(-100%);
     }
 
     header input,
@@ -196,11 +201,14 @@
       color: var(--text-color);
       font-weight: bold;
       font-size: 1.2rem;
+      line-height: 1.4;
+      /* Фикс наложения строк на мобильных */
       cursor: pointer;
       list-style: none;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background 0.3s ease;
     }
 
     summary::-webkit-details-marker {
@@ -369,7 +377,72 @@
     @media (max-width: 600px) {
       header {
         flex-direction: column;
-        padding: 15px;
+        padding: 5px 10px !important;
+        /* Ультра-компактная шапка */
+        gap: 6px;
+      }
+
+      h1 {
+        font-size: 1.3rem;
+        /* Еще меньше заголовок */
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+
+      h2.subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .nav-tabs {
+        width: 100%;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .nav-tabs .btn {
+        width: auto;
+        flex: 1;
+        font-size: 0.85rem;
+        padding: 6px 4px;
+        /* Компактные кнопки */
+        min-height: 38px;
+      }
+
+      .search-container {
+        width: 100%;
+      }
+
+      .search-container input {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: row;
+        /* Темы и режим в один ряд */
+        gap: 6px;
+        width: 100%;
+      }
+
+      .controls .btn {
+        flex: 1;
+        font-size: 0.8rem;
+        padding: 6px;
+        min-height: 38px;
+      }
+
+      #orthoSection summary,
+      #punctSection summary {
+        font-size: 1rem !important;
+        /* Уменьшение шрифта карточек для мобильных */
+        padding: 1rem 1.2rem !important;
+      }
+
+      .content {
+        padding: 1rem 1rem 1rem 1.5rem !important;
+        /* Больше пространства слева на мобильных */
       }
     }
 
@@ -476,6 +549,8 @@
       padding: 1.2rem 1.5rem !important;
       font-weight: bold;
       font-size: 1.2rem;
+      line-height: 1.4;
+      /* Гарантированный интервал */
       cursor: pointer;
       list-style: none;
       display: flex;
@@ -753,6 +828,25 @@
       }
     }
 
+    .beta-banner {
+      background: rgba(52, 152, 219, 0.1);
+      border: 1px solid rgba(52, 152, 219, 0.2);
+      color: var(--text-color);
+      padding: 10px 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.4;
+    }
+
+    .beta-banner b {
+      color: var(--accent-color);
+    }
+
     .footer-bottom {
       text-align: center;
       margin-top: 40px;
@@ -819,10 +913,16 @@
       <button class="btn hidden" id="saveBtn">💾 Сохранить</button>
     </div>
   </header>
-  <div class="container" id="mainContainer">
-    <svg id="drawCanvas"></svg>
+  <div class="container" id="mainWrapper">
+    <div class="beta-banner">
+      <span>⚙️ <b>Проект дополняется:</b> Сейчас здесь собраны два ключевых раздела для подготовки (Орфография и
+        Пунктуация). Мы постоянно работаем над добавлением новых тем!</span>
+    </div>
     <div id="noResultsMsg">Ничего не найдено на данный момент:(</div>
-    <div id="orthoSection">
+
+    <div id="mainContainer">
+      <svg id="drawCanvas"></svg>
+      <div id="orthoSection">
 
 
       <h1>Полный конспект по орфографии для ЦТ</h1>
@@ -1701,7 +1801,7 @@
           теории ради теории. Учить наизусть исключения и "ловушки".</em>
       </p>
 
-      <details open>
+      <details>
         <summary>УНИВЕРСАЛЬНЫЙ АЛГОРИТМ РЕШЕНИЯ ПУНКТУАЦИОННЫХ ЗАДАЧ (Часть А)</summary>
         <div class="content">
           <div class="rule-box">
@@ -2945,49 +3045,40 @@
       });
     }
 
-    function switchTab(sectionToShow, tabToActivate, otherSection, otherTab) {
-      if (!sectionToShow || !otherSection) {
-        console.error("Critical error: section buttons missing targets. Re-fetching sections...");
-        const freshOrtho = document.getElementById('orthoSection');
-        const freshPunct = document.getElementById('punctSection');
-        if (freshOrtho && freshPunct) {
-          // We can't easily fix the arguments here without recursion or changing caller,
-          // but we can at least find them.
-        } else {
-          showToast("Ошибка структуры страницы. Перезагрузите или сбросьте.");
-          return;
-        }
+    function switchTab(sectionType) {
+      // Всегда берем свежие элементы из DOM на случай, если localStorage их заменил
+      const currentOrtho = document.getElementById('orthoSection');
+      const currentPunct = document.getElementById('punctSection');
+      const currentOrthoTab = document.getElementById('tabOrtho');
+      const currentPunctTab = document.getElementById('tabPunct');
+
+      if (!currentOrtho || !currentPunct) return;
+
+      if (sectionType === 'ortho') {
+        currentOrtho.style.display = 'block';
+        currentPunct.style.display = 'none';
+        currentOrthoTab.classList.add('active');
+        currentPunctTab.classList.remove('active');
+        activeSection = currentOrtho;
+      } else {
+        currentOrtho.style.display = 'none';
+        currentPunct.style.display = 'block';
+        currentPunctTab.classList.add('active');
+        currentOrthoTab.classList.remove('active');
+        activeSection = currentPunct;
       }
 
       if (searchInput.value.trim() !== '') {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input'));
       }
-
-      // Используем актуальные элементы из DOM
-      const realOrtho = document.getElementById('orthoSection');
-      const realPunct = document.getElementById('punctSection');
-      const realShow = document.getElementById(sectionToShow.id);
-      const realOther = document.getElementById(otherSection.id);
-
-      if (realOther) realOther.style.display = 'none';
-      if (otherTab) otherTab.classList.remove('active');
-      if (realShow) realShow.style.display = 'block';
-      if (tabToActivate) tabToActivate.classList.add('active');
-
-      // Обновляем глобальные переменные для других скриптов
-      activeSection = realShow;
+      
+      rebuildSearchCache();
+      window.scrollTo(0, 0);
     }
 
-    tabOrtho.addEventListener('click', () => {
-      switchTab(orthoSection, tabOrtho, punctSection, tabPunct);
-      window.scrollTo(0, 0);
-    });
-
-    tabPunct.addEventListener('click', () => {
-      switchTab(punctSection, tabPunct, orthoSection, tabOrtho);
-      window.scrollTo(0, 0);
-    });
+    tabOrtho.addEventListener('click', () => switchTab('ortho'));
+    tabPunct.addEventListener('click', () => switchTab('punct'));
 
     const htmlEl = document.documentElement;
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -3121,23 +3212,29 @@
     mainContainer.addEventListener('pointerleave', stopInteraction);
 
     saveBtn.addEventListener('click', () => {
-      // КРИТИЧЕСКИ ВАЖНО: сначала сбрасываем видимость обоих разделов, чтобы стили 'display: none' не попали в сохраненный HTML
-      const currentSvg = document.getElementById('drawCanvas');
-      if (currentSvg) currentSvg.classList.remove('drawing-active');
-
+      // КРИТИЧЕСКИ ВАЖНО: При сохранении скрываем неактивные разделы обратно из сохраненной копии
+      // (Мы делаем это путем временного управления стилями ДО сохранения, 
+      // но в localStorage попадет внутреннее состояние контейнера)
+      
       const prevOrthoDisplay = orthoSection.style.display;
       const prevPunctDisplay = punctSection.style.display;
-
+      
+      // Показываем оба для сбора всего контента в поиск/кеш, но сохраняем ЧИСТОЕ состояние
       orthoSection.style.display = 'block';
       punctSection.style.display = 'block';
-
+      
       mainContainer.contentEditable = "false";
+      
+      // Сбрасываем лишние классы отрисовки перед сохранением
+      const currentSvg = document.getElementById('drawCanvas');
+      if (currentSvg) {
+          currentSvg.classList.remove('drawing-active', 'erasing-active');
+      }
 
-      // Сохраняем состояние
       localStorage.setItem('userNotes', mainContainer.innerHTML);
-      localStorage.setItem('site_version', '2.0'); // Метка новой структуры
+      localStorage.setItem('site_version', '2.0');
 
-      // Возвращаем как было
+      // После сохранения МГНОВЕННО возвращаем правильные стили в DOM
       orthoSection.style.display = prevOrthoDisplay;
       punctSection.style.display = prevPunctDisplay;
 
@@ -3157,12 +3254,13 @@
       localStorage.removeItem('site_version');
     } else if (savedHTML) {
       mainContainer.innerHTML = savedHTML;
-      // ВАЖНО: После замены innerHTML, старые ссылки на orthoSection и punctSection ведут на "мертвые" узлы.
-      // Обновляем глобальные ссылки на новые элементы из localStorage.
+      // ВАЖНО: Обновляем ссылки на элементы, так как старые узлы были удалены при замене innerHTML
       orthoSection = document.getElementById('orthoSection');
       punctSection = document.getElementById('punctSection');
-      activeSection = orthoSection; // Или проверяем, какой был активен
     }
+
+    // ГАРАНТИЯ: Принудительно скрываем ПУНКТУАЦИЮ при загрузке, чтобы ничего не накладывалось
+    switchTab('ortho');
 
     const originalHTMLs = new Map();
 
@@ -3296,6 +3394,23 @@
           }
         }
       }, 300);
+    });
+
+    // Логика скрытия шапки при прокрутке
+    let lastScrollY = window.scrollY;
+    const headerEl = document.querySelector('header');
+    const scrollThreshold = 10;
+
+    window.addEventListener('scroll', () => {
+      const currentScrollY = window.scrollY;
+      if (Math.abs(currentScrollY - lastScrollY) < scrollThreshold) return;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        headerEl.classList.add('header-hidden');
+      } else {
+        headerEl.classList.remove('header-hidden');
+      }
+      lastScrollY = currentScrollY;
     });
   </script>
 
