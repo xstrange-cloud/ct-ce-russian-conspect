@@ -387,6 +387,26 @@
         gap: 6px;
       }
 
+      #orthoSection,
+      #punctSection {
+        padding: 0 10px;
+      }
+
+      /* Responsive Tables */
+      table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      th,
+      td {
+        min-width: 120px;
+        white-space: normal;
+        word-break: break-word;
+      }
+
       h1 {
         font-size: 1.3rem;
         /* Еще меньше заголовок */
@@ -2507,6 +2527,19 @@
               </tr>
             </tbody>
           </table>
+          <div class="rule-box">
+            <p><strong>Вводные слова при обобщении:</strong></p>
+            <ul>
+              <li><strong>Перед перечислением:</strong> если стоят слова <em>а именно, как-то, например, то есть</em> —
+                ставим <strong>запятую перед</strong> ними и <strong>двоеточие после</strong>.<br>
+                <em>Пример: В корзине лежали фрукты, <strong>а именно:</strong> яблоки, груши и апельсины.</em>
+              </li>
+              <li><strong>После перечисления:</strong> если перед обобщающим словом стоят <em>словом, одним словом,
+                  короче говоря</em> — ставим <strong>тире перед</strong> ними и <strong>запятую после</strong>.<br>
+                <em>Пример: Яблоки, груши, апельсины <strong>— словом,</strong> фрукты лежали в корзине.</em>
+              </li>
+            </ul>
+          </div>
           <p><strong>Типичные обобщающие слова:</strong> всё, всюду, везде, повсюду, всегда, никто, ничто, никуда,
             никогда, каждый, любой и т.д.</p>
           <div class="trap">
@@ -2548,7 +2581,7 @@
                 <td><em>Вдали виднелся <strong>старый деревянный</strong> дом.</em> (возраст + материал)</td>
               </tr>
               <tr>
-                <td rowspan="3"><strong>Однородные</strong></td>
+                <td rowspan="4"><strong>Однородные</strong></td>
                 <td>Характеризуют предмет <strong>с одной стороны</strong> (синонимы или близкие по смыслу)</td>
                 <td><strong>ДА</strong></td>
                 <td><em>Был <strong>тёплый, ясный</strong> день.</em> (оба — про погоду)</td>
@@ -3562,6 +3595,16 @@
         themeToggle.innerText = newTheme === 'dark' ? '☀️ Светлая тема' : '🌙 Темная тема';
       });
 
+      const siteVersion = localStorage.getItem('site_version');
+      const currentVersion = '2.2';
+
+      if (siteVersion !== currentVersion) {
+        localStorage.removeItem('orthoContent');
+        localStorage.removeItem('punctContent');
+        localStorage.removeItem('userNotes');
+        localStorage.setItem('site_version', currentVersion);
+      }
+
       const savedOrthoContent = localStorage.getItem('orthoContent');
       const savedPunctContent = localStorage.getItem('punctContent');
       if (savedOrthoContent) orthoSection.innerHTML = savedOrthoContent;
@@ -3615,12 +3658,10 @@
 
       // === Persistence & Initialization ===
       const savedHTML = localStorage.getItem('userNotes');
-      const siteVersion = localStorage.getItem('site_version');
 
-      if (savedHTML && (!savedHTML.includes('id="orthoSection"') || siteVersion !== '2.0')) {
-        console.warn("Old site structure detected. Clearing.");
+      if (savedHTML && (!savedHTML.includes('id="orthoSection"') || localStorage.getItem('site_version') !== currentVersion)) {
+        console.warn("Old site structure or version detected. Clearing.");
         localStorage.removeItem('userNotes');
-        localStorage.removeItem('site_version');
       } else if (savedHTML) {
         mainContainer.innerHTML = savedHTML;
         orthoSection = document.getElementById('orthoSection');
@@ -3641,7 +3682,7 @@
         if (currentSvg) currentSvg.classList.remove('drawing-active', 'erasing-active');
 
         localStorage.setItem('userNotes', mainContainer.innerHTML);
-        localStorage.setItem('site_version', '2.0');
+        localStorage.setItem('site_version', currentVersion);
 
         orthoSection.style.display = prevOrthoDisplay;
         punctSection.style.display = prevPunctDisplay;
